@@ -4,6 +4,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
@@ -18,18 +20,48 @@ public class MainController {
     private Timeline timeline;
 
     @FXML
-    private javafx.scene.control.TextField delayField;
+    private TextField delayField;
+
+    @FXML
+    private Label progressLabel;
 
     private double delayMillis = 1000;
 
+    private final ProgressDirector progressDirector = new ProgressDirector();
+    private final ProgressBuilder progressBuilder = new SimpleProgressBuilder();
+
+    private int totalSlides;
+    private int currentSlideIndex = 1;
+
     @FXML
     public void initialize() {
+        totalSlides = conaggr.countSlides();
+
         Image first = (Image) iter.next();
+        currentSlideIndex = 1;
+
         if (first != null) {
             screen.setImage(first);
         }
 
+        updateProgressLabel();
+
         buildTimeline();
+    }
+
+    private void updateProgressLabel() {
+        if (totalSlides <= 0) {
+            progressLabel.setText("Слайдов нет");
+            return;
+        }
+
+        Progress progress = progressDirector.build(
+                progressBuilder,
+                currentSlideIndex,
+                totalSlides
+        );
+
+        progressLabel.setText(progress.toString());
     }
 
     private void buildTimeline() {
@@ -48,7 +80,12 @@ public class MainController {
     private void onTimerTick(ActionEvent event) {
         Image img = (Image) iter.next();
         if (img != null) {
+            currentSlideIndex++;
+            if (currentSlideIndex > totalSlides) {
+                currentSlideIndex = 1;
+            }
             screen.setImage(img);
+            updateProgressLabel();
         }
     }
 
@@ -56,7 +93,12 @@ public class MainController {
     private void onNextButtonClick() {
         Image img = (Image) iter.next();
         if (img != null) {
+            currentSlideIndex++;
+            if (currentSlideIndex > totalSlides) {
+                currentSlideIndex = 1; // по кругу
+            }
             screen.setImage(img);
+            updateProgressLabel();
         }
     }
 
@@ -64,7 +106,12 @@ public class MainController {
     private void onPrevButtonClick() {
         Image img = (Image) iter.preview();
         if (img != null) {
+            currentSlideIndex--;
+            if (currentSlideIndex < 1) {
+                currentSlideIndex = totalSlides; // по кругу назад
+            }
             screen.setImage(img);
+            updateProgressLabel();
         }
     }
 
@@ -99,5 +146,4 @@ public class MainController {
             System.out.println("Введено неверное значение");
         }
     }
-
 }

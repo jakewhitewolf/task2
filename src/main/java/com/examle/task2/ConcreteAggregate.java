@@ -57,4 +57,20 @@ public class ConcreteAggregate implements Aggregate {
             return getImage(current);
         }
     }
+
+    public int countSlides() {
+        int i = 1;
+        while (true) {
+            String filename = Paths
+                    .get("src/main/resources/img/" + filetopic + i + ".jpg")
+                    .toUri()
+                    .toString();
+            Image img = new Image(filename);
+            if (img.isError()) {
+                break;
+            }
+            i++;
+        }
+        return i - 1;
+    }
 }
